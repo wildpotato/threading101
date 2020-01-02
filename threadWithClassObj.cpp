@@ -4,44 +4,51 @@
 #include <mutex>
 #include <condition_variable>
 using namespace std;
+
 class Example {
   public:
-  Example();
-  
-  static void incVal(Example *ex)
-  {
-      while (ex->val < ex->max)
-      {
-          this_thread::sleep_for(std::chrono::milliseconds(500));
-          {
-            unique_lock<mutex> lock(ex->mtx);
-            ++ex->val;
-          }
-          ex->cond_var.notify_one();
-      }
-  }
-  
-  static void recvUpdate(Example *ex)
-  {
-      while (ex->val < ex->max)
-      {
-         unique_lock<mutex> lock(ex->mtx);
-         // wait until num_iter is updated
-         ex->cond_var.wait(lock);
-         cout << "Detected change in val: " << ex->val << endl;
-      }
-  }
-  mutex mtx;
+  Example(int _val) : val(_val) {}
+
+	mutex mtx;
   condition_variable cond_var;
-  int val = 0;
-  const int max = 6;
+  int val;
+  const int max = 15;
 }; // Example
+
+void updateCallBack(Example *ex)
+{
+    while (ex->val < ex->max)
+    {
+        this_thread::sleep_for(std::chrono::milliseconds(1000));
+        {
+          unique_lock<mutex> lock(ex->mtx);
+          ++ex->val;
+          cout << "t1 increments val: " << ex->val << endl;
+        }
+        ex->cond_var.notify_one();
+    }
+}
+
+void recv(Example *ex)
+{
+  int v = ex->val;
+  int m = ex->max;
+  while (v < m)
+  {
+     unique_lock<mutex> lock(ex->mtx);
+     // wait until val is updated
+     ex->cond_var.wait(lock);
+		 cout << "t2 detected change in val: " << ex->val << endl;
+     v = ex->val;
+  }
+}
 
 int main()
 {
-    Example ex;
-    thread t1(&Example::incVal, &ex);
-    thread t2(&Example::recvUpdate, &ex);
+	int val = 10;
+	Example ex(val);
+	thread t1(updateCallBack, &ex);
+	thread t2(recv, &ex);
     t1.join();
     t2.join();
     return 0;

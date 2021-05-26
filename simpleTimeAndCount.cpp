@@ -26,7 +26,7 @@ void update_time_thread()
     for (num_iter = 0; num_iter < 10; ++num_iter) {
         this_thread::sleep_for(std::chrono::milliseconds(2000));
         cout << return_current_time_and_date() << endl;
-    }    
+    }
 }
 
 // Simulate some process that takes more than 1 second
@@ -40,7 +40,7 @@ void count_second_thread()
 {
     long curr = -1;
     long prev = -1;
-    while (true) 
+    while (true)
     {
         curr = atomic_load(&num_iter);
         if (curr == prev) {

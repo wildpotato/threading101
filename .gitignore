@@ -1,0 +1,10 @@
+a.out
+simpleTimeAndCount
+threadWithClassObj
+twoThreadsWaiting
+waitCounterNotify
+**.swp
+**.a
+**.o
+**.d
+!.gitignore
